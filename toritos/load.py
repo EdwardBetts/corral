@@ -7,6 +7,7 @@ from toritos import models, util
 
 
 class Load(run.Loader):
+
     def setup(self):
         self.session.autocommit = True
 

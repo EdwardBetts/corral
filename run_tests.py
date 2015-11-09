@@ -8,6 +8,7 @@ import unittest
 import glob
 import importlib
 import logging
+import inspect
 
 from corral import util
 
@@ -75,6 +76,12 @@ def load_test_modules():
     return tuple(test_modules)
 
 
+def test_cases_from_module(module):
+    for obj in vars(module).values():
+        if inspect.isclass(obj) and issubclass(obj, base.BaseTest):
+            yield obj
+
+
 def run_tests(verbosity=1, failfast=False):
     """Run test of corral"""
 
@@ -83,12 +90,11 @@ def run_tests(verbosity=1, failfast=False):
     runner = unittest.runner.TextTestRunner(
         verbosity=verbosity, failfast=failfast)
 
-    load_test_modules()
-
-    for testcase in util.collect_subclasses(base.BaseTest):
-        tests = loader.loadTestsFromTestCase(testcase)
-        if tests.countTestCases():
-                suite.addTests(tests)
+    for module in load_test_modules():
+        for testcase in test_cases_from_module(module):
+            tests = loader.loadTestsFromTestCase(testcase)
+            if tests.countTestCases():
+                    suite.addTests(tests)
     return runner.run(suite)
 
 

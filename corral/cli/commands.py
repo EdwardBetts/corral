@@ -15,7 +15,7 @@ import logging
 
 import six
 
-from .. import db, conf, run
+from .. import db, conf, run, qa
 from ..libs import sqlalchemy_sql_shell as sql_shell
 
 from .base import BaseCommand
@@ -198,3 +198,21 @@ class Run(BaseCommand):
     def handle(self, step_classes):
         for step_cls in step_classes:
             run.execute_step(step_cls)
+
+
+class Test(BaseCommand):
+    """Excecute the steps in order or one step in particular"""
+
+    OPTIONS = {"title": "test"}
+
+    def setup(self):
+        self.parser.add_argument(
+            "-f", "--failfast", dest='failfast', default=False,
+            help='Stop on first fail or error', action='store_true')
+        self.parser.add_argument(
+            "-v", "--verbose", dest='verbosity',  default=1, const=2,
+            help='Verbose output', action='store_const')
+
+    def handle(self, failfast, verbosity):
+        test_module = qa.load_test_module()
+        qa.run_tests(test_module, verbosity, failfast)
